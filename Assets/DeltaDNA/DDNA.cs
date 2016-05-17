@@ -26,6 +26,9 @@ namespace DeltaDNA
 {
     using JSONObject = System.Collections.Generic.Dictionary<string, object>;
 
+    /// <summary>
+    /// DDNA is the deltaDNA SDK.
+    /// </summary>
     public class DDNA : Singleton<DDNA>
     {
         static readonly string PF_KEY_USER_ID = "DDSDK_USER_ID";
@@ -38,6 +41,7 @@ namespace DeltaDNA
         private GameEvent launchNotificationEvent = null;
         private string pushNotificationToken = null;
         private string androidRegistrationId = null;
+        private DateTime lastActive = DateTime.MinValue;
 
         private static Func<DateTime?> TimestampFunc = new Func<DateTime?>(DefaultTimestampFunc);
 
@@ -169,6 +173,7 @@ namespace DeltaDNA
         /// Records an event using the GameEvent class.
         /// </summary>
         /// <param name="gameEvent">Event to record.</param>
+        /// <exception cref="System.Exception">Thrown if the SDK has not been started.</exception>
         public void RecordEvent<T>(T gameEvent) where T : GameEvent<T>
         {
             if (!this.started) {
@@ -241,11 +246,13 @@ namespace DeltaDNA
         }
 
         /// <summary>
-        /// Makes an Engage request.  The result of the engagement will be passed as a dictionary object to your callback method. The response
-        /// will be null is no response is available.
+        /// Makes an Engage request.  The result of the engagement will be passed as a dictionary object to your callback method. The dictionary
+        /// will be empty if engage couldn't be reached on a campaign is not running.
+        /// A cache is maintained that will return the last valid response if available.
         /// </summary>
         /// <param name="engagement">The engagement the request is for.</param>
         /// <param name="callback">Method called with the response from Engage.</param>
+        /// <exception cref="System.Exception">Thrown if the SDK has not been started, and if the Engage URL has not been set.</exception>
         public void RequestEngagement(Engagement engagement, Action<Dictionary<string, object>> callback)
         {
             if (!this.started) {
@@ -265,7 +272,7 @@ namespace DeltaDNA
                 request.Parameters = dict["parameters"] as Dictionary<string, object>;
 
                 EngageResponse handler = (string response, int statusCode, string error) => {
-                    JSONObject responseJSON = null;
+                    JSONObject responseJSON = new JSONObject();
                     if (response != null) {
                         try {
                             responseJSON = DeltaDNA.MiniJSON.Json.Deserialize(response) as JSONObject;
@@ -284,6 +291,46 @@ namespace DeltaDNA
         }
 
         /// <summary>
+        /// Requests an Engagement with Engage.  The engagement is populated with the result of the request and
+        /// returned in the onCompleted callback.  The engagement's json field can be queried for the returned json.
+        /// A cache is maintained that will return the last valid response if available.
+        /// </summary>
+        /// <param name="engagement">The engagement the request is for.</param>
+        /// <param name="onCompleted">Method called with the Engagement populated by Engage.</param>
+        /// <exception cref="System.Exception">Thrown if the SDK has not been started, and if the Engage URL has not been set.</exception>
+        public void RequestEngagement(Engagement engagement, Action<Engagement> onCompleted, Action<Exception> onError)
+        {
+            if (!this.started) {
+                throw new Exception("You must first start the SDK via the StartSDK method.");
+            }
+
+            if (String.IsNullOrEmpty(this.EngageURL)) {
+                throw new Exception("Engage URL not configured.");
+            }
+
+            try {
+                var dict = engagement.AsDictionary();
+
+                var request = new EngageRequest(dict["decisionPoint"] as string);
+                request.Flavour = dict["flavour"] as string;
+                request.Parameters = dict["parameters"] as Dictionary<string, object>;
+
+                EngageResponse handler = (string response, int statusCode, string error) => {
+                    engagement.Raw = response;
+                    engagement.StatusCode = statusCode;
+                    engagement.Error = error;
+
+                    onCompleted(engagement);
+                };
+
+                StartCoroutine(Engage.Request(this, request, handler));
+
+            } catch (Exception ex) {
+                Logger.LogWarning("Engagement request failed: "+ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Requests an image based Engagement for popping up on screen.  This is a convience around RequestEngagement
         /// that loads the image resource automatically from the original engage request.  Register a function with the
         /// Popup's AfterLoad event to be notified when the image has be been downloaded from our server.
@@ -291,6 +338,7 @@ namespace DeltaDNA
         /// <param name="decisionPoint">The decision point the request is for, must match the string in Portal.</param>
         /// <param name="engageParams">Additional parameters for the engagement.</param>
         /// <param name="popup">A Popup object to display the image.</param>
+        /// <exception cref="System.Exception">Thrown if the SDK has not been started, and if the Engage URL has not been set.</exception>
         [Obsolete("Prefer 'RequestImageMessage' with an 'Engagement' instead.")]
         public void RequestImageMessage(string decisionPoint, Dictionary<string, object> engageParams, IPopup popup)
         {
@@ -310,6 +358,7 @@ namespace DeltaDNA
         /// <param name="engageParams">Additional parameters for the engagement.</param>
         /// <param name="popup">A Popup object to display the image.</param>
         /// <param name="callback">A callback with the engage response as the parameter.</param>
+        /// <exception cref="System.Exception">Thrown if the SDK has not been started, and if the Engage URL has not been set.</exception>
         [Obsolete("Prefer 'RequestImageMessage' with an 'Engagement' instead.")]
         public void RequestImageMessage(string decisionPoint, Dictionary<string, object> engageParams, IPopup popup, Action<Dictionary<string, object>> callback)
         {
@@ -327,6 +376,8 @@ namespace DeltaDNA
         /// </summary>
         /// <param name="engagement">The engagement the request is for.</param>
         /// <param name="popup">A Popup object to display the image.</param>
+        /// <exception cref="System.Exception">Thrown if the SDK has not been started, and if the Engage URL has not been set.</exception>
+        [Obsolete("Prefer 'RequestEngagement' and using an 'ImageMessage'.")]
         public void RequestImageMessage(Engagement engagement, IPopup popup)
         {
             RequestImageMessage(engagement, popup, null);
@@ -340,6 +391,8 @@ namespace DeltaDNA
         /// <param name="engagement">The engagement the request is for.</param>
         /// <param name="popup">A Popup object to display the image.</param>
         /// <param name="callback">Method called with the response from Engage.</param>
+        /// <exception cref="System.Exception">Thrown if the SDK has not been started, and if the Engage URL has not been set.</exception>
+        [Obsolete("Prefer 'RequestEngagement' and using an 'ImageMessage'.")]
         public void RequestImageMessage(Engagement engagement, IPopup popup, Action<Dictionary<string, object>> callback)
         {
             Action<Dictionary<string, object>> imageCallback = (response) =>
@@ -622,6 +675,20 @@ namespace DeltaDNA
             base.OnDestroy();
         }
 
+        private void OnApplicationPause(bool pauseStatus)
+        {
+            if (pauseStatus) {
+                this.lastActive = DateTime.UtcNow;
+
+            } else {
+                var backgroundSeconds = (DateTime.UtcNow - this.lastActive).TotalSeconds;
+                if (backgroundSeconds > this.Settings.SessionTimeoutSeconds) {
+                    this.lastActive = DateTime.MinValue;
+                    this.NewSession();
+                }
+            }
+        }
+
         private string GenerateSessionID()
         {
             return Guid.NewGuid().ToString();
@@ -725,16 +792,13 @@ namespace DeltaDNA
             request.HTTPBody = bulkEvent;
             request.setHeader("Content-Type", "application/json");
 
-            while (attempts < Settings.HttpRequestMaxRetries) {
-
+            do {
                 yield return StartCoroutine(Network.SendRequest(request, completionHandler));
 
-                if (succeeded) break;
+                if (succeeded || ++attempts < Settings.HttpRequestMaxRetries) break;
 
                 yield return new WaitForSeconds(Settings.HttpRequestRetryDelaySeconds);
-
-                attempts += 1;
-            }
+            } while (attempts < Settings.HttpRequestMaxRetries);
 
             resultCallback(succeeded, status);
         }
