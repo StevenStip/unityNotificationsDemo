@@ -1,0 +1,77 @@
+apply plugin: 'com.android.application'
+
+def notifications = hasProperty('notifications')
+def smartads = hasProperty('smartads')
+def networks = hasProperty('networks') ? networks.split(',') : []
+def network = { network ->
+    if (network in networks) {
+        dependencies.compile("com.deltadna.android:deltadna-smartads-provider-${network}:1.1.4")
+    }
+}
+
+buildscript {
+    repositories {
+        maven { url 'http://jcenter.bintray.com' }
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.0.0'
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'http://jcenter.bintray.com' }
+    maven { url "http://deltadna.bintray.com/android" }
+}
+
+android {
+    buildToolsVersion '23.0.3'
+    compileSdkVersion 23
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+
+    // included as part of notifications
+    if (!notifications) {
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude group: 'com.google.android.gms', module: 'play-services-gcm'
+        exclude group: 'com.google.android.gms', module: 'play-services-base'
+    }
+}
+
+dependencies {
+    if (notifications) {
+        compile 'com.deltadna.android:deltadna-sdk-notifications:4.1.2'
+    }
+    if (smartads) {
+        compile 'com.deltadna.android:deltadna-smartads-core:1.1.4'
+    }
+
+    network('adcolony')
+    network('admob')
+    network('amazon')
+    network('applovin')
+    network('chartboost')
+    network('flurry')
+    network('inmobi')
+    network('mopub')
+    network('supersonic')
+    network('unity')
+    network('vungle')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.12'
+}
+
+task clean(type: Delete) {
+    delete '../../Plugins/Android'
+}
+
+task download(type: Copy) {
+    from configurations.compile
+    into '../../Plugins/Android'
+}

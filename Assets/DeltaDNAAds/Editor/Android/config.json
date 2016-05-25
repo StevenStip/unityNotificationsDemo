@@ -1,0 +1,11 @@
+{
+    "networks": [
+        "admob",
+        "amazon",
+        "flurry",
+        "mopub",
+        "chartboost",
+        "adcolony",
+        "unity",
+        "vungle"]
+}

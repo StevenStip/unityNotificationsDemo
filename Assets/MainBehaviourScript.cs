@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections;
-using DeltaDNA; 
+using DeltaDNA;
+using DeltaDNAAds;
 
 public class MainBehaviourScript : MonoBehaviour
 {
@@ -8,21 +8,23 @@ public class MainBehaviourScript : MonoBehaviour
 	public const string ENGAGE_URL = "http://engage8634ntynt.deltadna.net";
 	public const string ENVIRONMENT_KEY = "77068300723337397081646175814611";
 
-	Camera camera;
+	Camera cam;
 
 	// Use this for initialization
 	void Start ()
 	{
-		camera = GetComponent<Camera> ();
-		camera.clearFlags = CameraClearFlags.SolidColor;
+        cam = GetComponent<Camera>();
+		//camera = new GetComponent<UnityEnging.Component.Camera> ();
+		cam.clearFlags = CameraClearFlags.SolidColor;
 
-		Debug.Log ("hi");
+		Debug.Log ("Starting the application");
 		DDNA.Instance.SetLoggingLevel (DeltaDNA.Logger.Level.DEBUG);
 		DDNA.Instance.ClientVersion = "0.1";
 		DDNA.Instance.StartSDK (ENVIRONMENT_KEY, COLLECT_URL, ENGAGE_URL);
 
-		// iOS push notifications
-		DDNA.Instance.IosNotifications.OnDidRegisterForPushNotifications += (string n) => {
+
+        // iOS push notifications
+        DDNA.Instance.IosNotifications.OnDidRegisterForPushNotifications += (string n) => {
 			Debug.Log ("Got an iOS push token: " + n);
 		};
 		DDNA.Instance.IosNotifications.OnDidReceivePushNotification += (string n) => {
@@ -52,6 +54,11 @@ public class MainBehaviourScript : MonoBehaviour
 		int xOffset = 0;
 		int yOffset = 0;
 
+        //void updateXY (){
+        //    Screen.height;
+        
+        //    }
+
 		if (GUI.Button (new Rect (yOffset+=10, xOffset+=10, 300, 100), "do engage stuff")) {
 			Debug.Log ("do engage stuff");
 
@@ -71,9 +78,9 @@ public class MainBehaviourScript : MonoBehaviour
 				if (parameters.ContainsKey("isTutorial")){
 					Debug.Log("the parameter: ");
 					if (System.Convert.ToBoolean(parameters["isTutorial"])){
-						camera.backgroundColor = Color.green;
+						cam.backgroundColor = Color.green;
 					}else{
-						camera.backgroundColor = Color.red;
+						cam.backgroundColor = Color.red;
 					}
 					Debug.Log(parameters["isTutorial"].ToString());
 				
@@ -98,7 +105,7 @@ public class MainBehaviourScript : MonoBehaviour
 					imageMessage.OnDidReceiveResources += () => {
 						Debug.Log("Image Message loaded resources.");
 						imageMessage.Show();
-					};				
+					};
 				} else {
 					Debug.Log("No image message returned");
 				}
@@ -108,18 +115,55 @@ public class MainBehaviourScript : MonoBehaviour
 
 		}
 
-		if (GUI.Button (new Rect (yOffset, xOffset+=110, 300, 100), "Clear persistent data")) {
-			DDNA.Instance.ClearPersistentData ();
+		if (GUI.Button (new Rect (yOffset, xOffset+=110, 300, 100), "Clear all data")) {
+            Debug.Log("User pressed clear all persistent data button");
+
+            DDNA.Instance.ClearPersistentData ();
 		}
 
 		if (GUI.Button (new Rect (yOffset, xOffset+=110, 300, 100), "record event")) {
-			// Build a game event with a couple of event parameters
-			GameEvent optionsEvent = new GameEvent ("options")
+            Debug.Log("Record event");
+
+            // Build a game event with a couple of event parameters
+            GameEvent optionsEvent = new GameEvent ("options")
 				.AddParam ("option", "Music")
 				.AddParam ("action", "Disabled");
 
 			// Record the event
 			DDNA.Instance.RecordEvent (optionsEvent);
 		}
-	}
+
+        if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "restartSDK")){
+            Debug.Log("User restarts DeltaDNA SDK");
+            DDNA.Instance.StopSDK();
+            DDNA.Instance.StartSDK(ENVIRONMENT_KEY, COLLECT_URL, ENGAGE_URL);
+        }
+
+        if (GUI.Button(new Rect(yOffset = 320, xOffset = 10, 300, 100), "start smartAds"))
+        {
+            // Register for smartAds
+            DDNASmartAds.Instance.RegisterForAds();
+        }
+
+        if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "show interstitial"))
+        {
+            var interstitialAd = InterstitialAd.Create();
+            if (interstitialAd != null)
+            {
+                interstitialAd.Show();
+            }
+
+        }
+
+        if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "show rewarded"))
+        {
+            var rewardedAd = RewardedAd.Create();
+            if (rewardedAd != null)
+            {
+                rewardedAd.Show();
+            }
+
+        }
+
+    }
 }
