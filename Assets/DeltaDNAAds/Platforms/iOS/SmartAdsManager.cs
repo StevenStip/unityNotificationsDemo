@@ -27,13 +27,19 @@ namespace DeltaDNAAds.iOS {
         private static extern void _registerForAds(string decisionPoint);
 
         [DllImport("__Internal")]
-        private static extern bool _isInterstitialAdAvailable();
+        private static extern int _isInterstitialAdAllowed(string decisionPoint, string engageParams);
+
+        [DllImport("__Internal")]
+        private static extern int _isInterstitialAdAvailable();
 
         [DllImport("__Internal")]
         private static extern void _showInterstitialAd(string decisionPoint);
 
         [DllImport("__Internal")]
-        private static extern bool _isRewardedAdAvailable();
+        private static extern int _isRewardedAdAllowed(string decisionPoint, string engageParams);
+
+        [DllImport("__Internal")]
+        private static extern int _isRewardedAdAvailable();
 
         [DllImport("__Internal")]
         private static extern void _showRewardedAd(string decisionPoint);
@@ -59,9 +65,23 @@ namespace DeltaDNAAds.iOS {
             _registerForAds(decisionPoint);
         }
 
+        public bool IsInterstitialAdAllowed(Engagement engagement)
+        {
+            string decisionPoint = null;
+            string engageParams = null;
+
+            if (engagement != null && engagement.JSON != null) {
+                try {
+                    decisionPoint = engagement.DecisionPoint;
+                    engageParams = DeltaDNA.MiniJSON.Json.Serialize(engagement.JSON[@"parameters"]);
+                } catch (System.Exception) {}
+            }
+            return _isInterstitialAdAllowed(decisionPoint, engageParams) > 0;
+        }
+
         public bool IsInterstitialAdAvailable()
         {
-            return _isInterstitialAdAvailable();
+            return _isInterstitialAdAvailable() > 0;
         }
 
         public void ShowInterstitialAd()
@@ -74,9 +94,23 @@ namespace DeltaDNAAds.iOS {
             _showInterstitialAd(decisionPoint);
         }
 
+        public bool IsRewardedAdAllowed(Engagement engagement)
+        {
+            string decisionPoint = null;
+            string engageParams = null;
+
+            if (engagement != null && engagement.JSON != null) {
+                try {
+                    decisionPoint = engagement.DecisionPoint;
+                    engageParams = DeltaDNA.MiniJSON.Json.Serialize(engagement.JSON[@"parameters"]);
+                } catch (System.Exception) {}
+            }
+            return _isRewardedAdAllowed(decisionPoint, engageParams) > 0;
+        }
+
         public bool IsRewardedAdAvailable()
         {
-            return _isRewardedAdAvailable();
+            return _isRewardedAdAvailable() > 0;
         }
 
         public void ShowRewardedAd()

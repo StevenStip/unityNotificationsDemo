@@ -61,6 +61,9 @@ namespace DeltaDNAAds
                 return;
             }
 
+            DDNA.Instance.OnNewSession -= this.RegisterForAds;
+            DDNA.Instance.OnNewSession += this.RegisterForAds;
+
             try {
                 if (Application.platform == RuntimePlatform.IPhonePlayer) {
                     #if UNITY_IOS
@@ -83,6 +86,11 @@ namespace DeltaDNAAds
             }
         }
 
+        public bool IsInterstitialAdAllowed(Engagement engagement)
+        {
+            return manager != null && manager.IsInterstitialAdAllowed(engagement);
+        }
+
         public bool IsInterstitialAdAvailable()
         {
             return manager != null && manager.IsInterstitialAdAvailable();
@@ -97,6 +105,11 @@ namespace DeltaDNAAds
         public void ShowInterstitialAd(string decisionPoint)
         {
             ShowInterstitialAdImpl(decisionPoint);
+        }
+
+        public bool IsRewardedAdAllowed(Engagement engagement)
+        {
+            return manager != null && manager.IsRewardedAdAllowed(engagement);
         }
 
         public bool IsRewardedAdAvailable()
@@ -165,7 +178,7 @@ namespace DeltaDNAAds
         internal void DidFailToOpenInterstitialAd(string reason)
         {
             Action action = delegate() {
-                Logger.LogDebug("Failed to open an insterstital ad: "+reason);
+                Logger.LogDebug("Failed to open an interstitial ad: "+reason);
 
                 if (OnInterstitialAdFailedToOpen != null) {
                     OnInterstitialAdFailedToOpen(reason);
@@ -329,10 +342,8 @@ namespace DeltaDNAAds
         {
             if (manager != null) {
                 if (pauseStatus) {
-                    Logger.LogDebug("Pausing SmartAds");
                     manager.OnPause();
                 } else {
-                    Logger.LogDebug("Resuming SmartAds");
                     manager.OnResume();
                 }
             }
@@ -370,6 +381,7 @@ namespace DeltaDNAAds
         {
             if (manager != null) {
                 Logger.LogDebug("Destroying StartAds");
+                DDNA.Instance.OnNewSession -= this.RegisterForAds;
                 manager.OnDestroy();
             }
             base.OnDestroy();

@@ -44,14 +44,6 @@ def download(args, notifications, smartads, networks):
         log.info("requesting networks %s", ', '.join(networks))
 
     log.info('downloading libraries')
-    print "{} {} {} {} clean download {} {} -Pnetworks={}".format(
-        GRADLE,
-        '--stacktrace' if args.stacktrace else '',
-        '--info' if args.info else '',
-        '--debug' if args.debug else '',
-        '-Pnotifications' if notifications else '',
-        '-Psmartads' if smartads else '',
-        ','.join(networks))
     code = execute("{} {} {} {} clean download {} {} -Pnetworks={}".format(
         GRADLE,
         '--stacktrace' if args.stacktrace else '',
@@ -60,8 +52,6 @@ def download(args, notifications, smartads, networks):
         '-Pnotifications' if notifications else '',
         '-Psmartads' if smartads else '',
         ','.join(networks)))
-
-    
 
     if code is 0:
         log.info("downloaded libraries to %s", LIBS)

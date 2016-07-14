@@ -16,7 +16,7 @@
 
 using UnityEngine;
 using System.Collections.Generic;
-using System.Threading;
+using DeltaDNA;
 
 namespace DeltaDNAAds.Android
 {
@@ -45,6 +45,22 @@ namespace DeltaDNAAds.Android
             adService.Call("init", decisionPoint);
         }
 
+        public bool IsInterstitialAdAllowed(Engagement engagement) {
+            string parameters = null;
+            if (engagement != null && engagement.JSON != null && engagement.JSON.ContainsKey("parameters")) {
+                try {
+                    parameters = DeltaDNA.MiniJSON.Json.Serialize(engagement.JSON["parameters"]);
+                } catch (System.Exception e) {
+                    DeltaDNA.Logger.LogDebug("Exception serialising Engagement response parameters: " + e.Message);
+                }
+            }
+
+            return adService.Call<bool>(
+                "isInterstitialAdAllowed",
+                (engagement != null) ? engagement.DecisionPoint : null,
+                (parameters != null) ? new AndroidJavaObject(Utils.JSONObjectClassName, parameters) : null);
+        }
+
         public bool IsInterstitialAdAvailable() {
             return adService.Call<bool>("isInterstitialAdAvailable");
         }
@@ -55,6 +71,22 @@ namespace DeltaDNAAds.Android
 
         public void ShowInterstitialAd(string decisionPoint) {
             adService.Call("showInterstitialAd", decisionPoint);
+        }
+
+        public bool IsRewardedAdAllowed(Engagement engagement) {
+            string parameters = null;
+            if (engagement != null && engagement.JSON != null && engagement.JSON.ContainsKey("parameters")) {
+                try {
+                    parameters = DeltaDNA.MiniJSON.Json.Serialize(engagement.JSON["parameters"]);
+                } catch (System.Exception e) {
+                    DeltaDNA.Logger.LogDebug("Exception serialising Engagement response parameters: " + e.Message);
+                }
+            }
+
+            return adService.Call<bool>(
+                "isRewardedAdAllowed",
+                (engagement != null) ? engagement.DecisionPoint : null,
+                (parameters != null) ? new AndroidJavaObject(Utils.JSONObjectClassName, parameters) : null);
         }
 
         public bool IsRewardedAdAvailable() {

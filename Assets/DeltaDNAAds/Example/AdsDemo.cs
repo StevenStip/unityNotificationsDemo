@@ -64,9 +64,6 @@ namespace DeltaDNAAds
         }
 
         void OnGUI() {
-
-            GUI.enabled = DDNASmartAds.Instance.IsInterstitialAdAvailable();
-
             if (GUI.Button(new Rect(10, 20, 200, 80), "Interstitial")) {
 
                 var interstitialAd = InterstitialAd.Create();
@@ -108,8 +105,6 @@ namespace DeltaDNAAds
                 });
             }
 
-            GUI.enabled = DDNASmartAds.Instance.IsRewardedAdAvailable();
-
             if (GUI.Button(new Rect(10, 320, 200, 80), "Rewarded Ad")) {
 
                 var rewardedAd = RewardedAd.Create();
@@ -149,8 +144,6 @@ namespace DeltaDNAAds
                 });
             }
 
-            GUI.enabled = true;
-
             if (GUI.Button(new Rect(10, 620, 200, 80), "Rewarded or Image")) {
 
                 var engagement = new Engagement("showRewardOrImage");
@@ -185,6 +178,10 @@ namespace DeltaDNAAds
                     Debug.Log("Engage encountered an error: "+exception.Message);
                 });
 
+            }
+
+            if (GUI.Button(new Rect(10, 820, 200, 80), "New Session")) {
+                DDNA.Instance.NewSession();
             }
         }
     }
