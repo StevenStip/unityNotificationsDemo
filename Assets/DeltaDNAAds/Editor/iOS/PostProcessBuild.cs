@@ -16,7 +16,7 @@
 
 using UnityEditor;
 using UnityEditor.Callbacks;
-//using UnityEditor.iOS.Xcode;
+using UnityEditor.iOS.Xcode;
 using System.IO;
 using System.Diagnostics;
 
@@ -29,7 +29,7 @@ public class PostProcessBuild {
     [PostProcessBuild]
     public static void OnPostprocessBuild(BuildTarget buildTarget, string path) {
         UnityEngine.Debug.Log("OnPostprocessBuild "+buildTarget+" "+path);
-        /*
+
         if (buildTarget == BuildTarget.iOS) {
 
             string projectPath = PBXProject.GetPBXProjectPath(path);
@@ -69,6 +69,6 @@ public class PostProcessBuild {
             proc.Start();
             proc.WaitForExit();
         }
-        */
+
     }
 }
