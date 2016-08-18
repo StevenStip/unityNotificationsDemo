@@ -40,7 +40,18 @@ public class MainBehaviourScript : MonoBehaviour
 		DDNA.Instance.AndroidNotifications.OnDidFailToRegisterForPushNotifications += (string n) => {
 			Debug.Log ("Failed getting an Android registration token: " + n);
 		};
+
+		DDNA.Instance.AndroidNotifications.OnDidLaunchWithPushNotification += (string n) => {
+			Debug.Log ("Started from background with pushnotificaction: " + n);
+		};
+
+		DDNA.Instance.AndroidNotifications.OnDidReceivePushNotification += (string n) => {
+			Debug.Log ("Received push notification while open with pushnotificaction: " + n);
+		};
+
 		DDNA.Instance.AndroidNotifications.RegisterForPushNotifications ();
+
+
 
 
 	}
