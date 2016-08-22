@@ -52,8 +52,6 @@ public class MainBehaviourScript : MonoBehaviour
 		DDNA.Instance.AndroidNotifications.RegisterForPushNotifications ();
 
 
-
-
 	}
 
 
