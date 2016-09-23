@@ -14,6 +14,7 @@
 // limitations under the License.
 //
 
+#if UNITY_IOS && !UNITY_4_5 && !UNITY_4_6 && !UNITY_4_7
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.iOS.Xcode;
@@ -26,7 +27,7 @@ using System.Diagnostics;
  */
 public class PostProcessBuild {
 
-    [PostProcessBuild]
+    [PostProcessBuild(0)]
     public static void OnPostprocessBuild(BuildTarget buildTarget, string path) {
         UnityEngine.Debug.Log("OnPostprocessBuild "+buildTarget+" "+path);
 
@@ -69,6 +70,6 @@ public class PostProcessBuild {
             proc.Start();
             proc.WaitForExit();
         }
-
     }
 }
+#endif

@@ -54,9 +54,8 @@ public class IosNotifications : MonoBehaviour
     public void RegisterForPushNotifications()
     {
         if (Application.platform == RuntimePlatform.IPhonePlayer) {
-        
-            #if UNITY_IPHONE    
-            #if UNITY_4_5 || UNITY_4_6      
+            #if UNITY_IPHONE
+            #if UNITY_4_5 || UNITY_4_6 || UNITY_4_7
             NotificationServices.RegisterForRemoteNotificationTypes(
                 RemoteNotificationType.Alert |
                 RemoteNotificationType.Badge |
@@ -65,11 +64,11 @@ public class IosNotifications : MonoBehaviour
             UnityEngine.iOS.NotificationServices.RegisterForNotifications(
                 UnityEngine.iOS.NotificationType.Alert |
                 UnityEngine.iOS.NotificationType.Badge |
-                UnityEngine.iOS.NotificationType.Sound);        
+                UnityEngine.iOS.NotificationType.Sound);
             #endif
             #endif
+            }
         }
-    }
 
     /// <summary>
     /// Unregisters for push notifications.
@@ -78,14 +77,14 @@ public class IosNotifications : MonoBehaviour
     {
         if (Application.platform == RuntimePlatform.IPhonePlayer) {
             #if UNITY_IPHONE
-            #if UNITY_4_5 || UNITY_4_6 
+            #if UNITY_4_5 || UNITY_4_6 || UNITY_4_7
             NotificationServices.UnregisterForRemoteNotifications();
             #else
             UnityEngine.iOS.NotificationServices.UnregisterForRemoteNotifications();
             #endif
             #endif
+            }
         }
-    }
 
     #region Native Bridge
 
@@ -94,6 +93,7 @@ public class IosNotifications : MonoBehaviour
         Logger.LogDebug("Did launch with iOS push notification");
 
         var payload = DeltaDNA.MiniJSON.Json.Deserialize(notification) as Dictionary<string, object>;
+        payload["_ddCommunicationSender"] = "APPLE_NOTIFICATION";
         DDNA.Instance.RecordPushNotification(payload);
 
         if (OnDidLaunchWithPushNotification != null) {
@@ -106,6 +106,7 @@ public class IosNotifications : MonoBehaviour
         Logger.LogDebug("Did receive iOS push notification");
 
         var payload = DeltaDNA.MiniJSON.Json.Deserialize(notification) as Dictionary<string, object>;
+        payload["_ddCommunicationSender"] = "APPLE_NOTIFICATION";
         DDNA.Instance.RecordPushNotification(payload);
 
         if (OnDidReceivePushNotification != null) {

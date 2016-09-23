@@ -30,7 +30,7 @@ public class MainBehaviourScript : MonoBehaviour
 		DDNA.Instance.IosNotifications.OnDidReceivePushNotification += (string n) => {
 			Debug.Log ("Got an iOS push notification! " + n);
 		};
-		DDNA.Instance.IosNotifications.RegisterForPushNotifications ();
+//		DDNA.Instance.IosNotifications.RegisterForPushNotifications ();
 
 
 		// Android push notifications:
@@ -49,7 +49,7 @@ public class MainBehaviourScript : MonoBehaviour
 			Debug.Log ("Received push notification while open with pushnotificaction: " + n);
 		};
 
-		DDNA.Instance.AndroidNotifications.RegisterForPushNotifications ();
+//		DDNA.Instance.AndroidNotifications.RegisterForPushNotifications ();
 
 
 	}
@@ -173,6 +173,15 @@ public class MainBehaviourScript : MonoBehaviour
             }
 
         }
+		if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "register4notifications"))
+		{
+			Debug.Log ("(re-)register for notifications");
+			DDNA.Instance.IosNotifications.RegisterForPushNotifications ();
+
+			DDNA.Instance.AndroidNotifications.RegisterForPushNotifications ();
+
+		}
+
 
     }
 }
