@@ -19,7 +19,7 @@ public class MainBehaviourScript : MonoBehaviour
 
 		Debug.Log ("Starting the application");
 		DDNA.Instance.SetLoggingLevel (DeltaDNA.Logger.Level.DEBUG);
-		DDNA.Instance.ClientVersion = "0.1";
+		DDNA.Instance.ClientVersion = "0.2.0";
 		DDNA.Instance.StartSDK (ENVIRONMENT_KEY, COLLECT_URL, ENGAGE_URL);
 
 
@@ -58,17 +58,16 @@ public class MainBehaviourScript : MonoBehaviour
 	void OnGUI ()
 	{
 		GUI.skin.textField.wordWrap = true;
-		GUI.skin.button.fontSize = 36;
+		GUI.skin.button.fontSize = 32;
 
 		int xOffset = 0;
 		int yOffset = 0;
 
-        //void updateXY (){
-        //    Screen.height;
-        
-        //    }
+		int buttonWidth = 350;
+		int buttonHeight = 100;
 
-		if (GUI.Button (new Rect (yOffset+=10, xOffset+=10, 300, 100), "do engage stuff")) {
+
+		if (GUI.Button (new Rect (yOffset+=10, xOffset+=10, buttonWidth, buttonHeight), "Param Engage")) {
 			Debug.Log ("do engage stuff");
 
 			var engagement = new Engagement("startMission")
@@ -99,14 +98,14 @@ public class MainBehaviourScript : MonoBehaviour
 
 			});
 		}
-		if (GUI.Button (new Rect (yOffset, xOffset+=110, 300, 100), "image engage")) {
+		if (GUI.Button (new Rect (yOffset, xOffset+=(buttonHeight+10), buttonWidth, buttonHeight), "Image Engage")) {
 			var engagement = new Engagement ("openMenu");
 
 			DDNA.Instance.RequestEngagement (engagement, (response) => {
 
 				ImageMessage imageMessage = ImageMessage.Create (response);
 
-				// Check we got an engagement with a valid image message.
+				// Check is we got an engagement with a valid image message.
 				if (imageMessage != null) {   
 					// Download the image message resources.
 					Debug.Log("Image received");
@@ -124,13 +123,13 @@ public class MainBehaviourScript : MonoBehaviour
 
 		}
 
-		if (GUI.Button (new Rect (yOffset, xOffset+=110, 300, 100), "Clear all data")) {
+		if (GUI.Button (new Rect (yOffset, xOffset+=(buttonHeight+10), buttonWidth, buttonHeight), "Clear stored data")) {
             Debug.Log("User pressed clear all persistent data button");
 
             DDNA.Instance.ClearPersistentData ();
 		}
 
-		if (GUI.Button (new Rect (yOffset, xOffset+=110, 300, 100), "record event")) {
+		if (GUI.Button (new Rect (yOffset, xOffset+=(buttonHeight+10), buttonWidth, buttonHeight), "Record event")) {
             Debug.Log("Record event");
 
             // Build a game event with a couple of event parameters
@@ -142,19 +141,19 @@ public class MainBehaviourScript : MonoBehaviour
 			DDNA.Instance.RecordEvent (optionsEvent);
 		}
 
-        if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "restartSDK")){
+		if (GUI.Button(new Rect(yOffset, xOffset += (buttonHeight+10), buttonWidth, buttonHeight), "Restart SDK")){
             Debug.Log("User restarts DeltaDNA SDK");
             DDNA.Instance.StopSDK();
             DDNA.Instance.StartSDK(ENVIRONMENT_KEY, COLLECT_URL, ENGAGE_URL);
         }
 
-        if (GUI.Button(new Rect(yOffset = 320, xOffset = 10, 300, 100), "start smartAds"))
+		if (GUI.Button(new Rect(yOffset = (buttonWidth+20), xOffset = 10, buttonWidth, buttonHeight), "Start SmartAds"))
         {
             // Register for smartAds
             DDNASmartAds.Instance.RegisterForAds();
         }
 
-        if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "show interstitial"))
+		if (GUI.Button(new Rect(yOffset, xOffset += (buttonHeight+10), buttonWidth, buttonHeight), "Show interstitial"))
         {
             var interstitialAd = InterstitialAd.Create();
             if (interstitialAd != null)
@@ -164,7 +163,7 @@ public class MainBehaviourScript : MonoBehaviour
 
         }
 
-        if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "show rewarded"))
+		if (GUI.Button(new Rect(yOffset, xOffset += (buttonHeight+10), buttonWidth, buttonHeight), "Show rewarded"))
         {
             var rewardedAd = RewardedAd.Create();
             if (rewardedAd != null)
@@ -173,11 +172,14 @@ public class MainBehaviourScript : MonoBehaviour
             }
 
         }
-		if (GUI.Button(new Rect(yOffset, xOffset += 110, 300, 100), "register4notifications"))
+		if (GUI.Button(new Rect(yOffset, xOffset += (buttonHeight+10), buttonWidth, buttonHeight), "Reg for notif."))
 		{
 			Debug.Log ("(re-)register for notifications");
+
+			//Register for ios notifications
 			DDNA.Instance.IosNotifications.RegisterForPushNotifications ();
 
+			//register for android notifications
 			DDNA.Instance.AndroidNotifications.RegisterForPushNotifications ();
 
 		}
