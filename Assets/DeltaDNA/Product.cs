@@ -17,6 +17,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Xml;
 
 namespace DeltaDNA {
@@ -123,23 +124,58 @@ namespace DeltaDNA {
         static Product() {
             ISO4217 = new Dictionary<string, int>();
 
-            var res = Resources.Load("iso_4217", typeof(TextAsset)) as TextAsset;
-            var xml = new XmlDocument();
-            xml.LoadXml(res.text);
+            using (XmlReader reader = XmlReader.Create(new StringReader((Resources.Load(
+                    "iso_4217",
+                    typeof(TextAsset)) as TextAsset).text))) {
+                bool expectingCode = false;
+                bool expectingValue = false;
+                string pulledCode = null;
+                string pulledValue = null;
 
-            foreach (XmlNode node in xml.SelectNodes("/ISO_4217/CcyTbl/CcyNtry")) {
-                var ccy = node.SelectSingleNode("Ccy");
-                if (ccy == null) continue;
+                while (reader.Read()) {
+                    switch (reader.NodeType) {
+                        case XmlNodeType.Element:
+                            if (reader.Name.Equals("Ccy")) {
+                                expectingCode = true;
+                            } else if (reader.Name.Equals("CcyMnrUnts")) {
+                                expectingValue = true;
+                            }
+                            break;
 
-                var key = ccy.InnerText;
-                int value;
-                try {
-                    value = int.Parse(node.SelectSingleNode("CcyMnrUnts").InnerText);
-                } catch (FormatException) {
-                    value = 0;
+                        case XmlNodeType.Text:
+                            if (expectingCode) {
+                                pulledCode = reader.Value;
+                            } else if (expectingValue) {
+                                pulledValue = reader.Value;
+                            }
+                            break;
+
+                        case XmlNodeType.EndElement:
+                            if (reader.Name.Equals("Ccy")) {
+                                expectingCode = false;
+                            } else if (reader.Name.Equals("CcyMnrUnts")) {
+                                expectingValue = false;
+                            } else if (reader.Name.Equals("CcyNtry")) {
+                                if (!string.IsNullOrEmpty(pulledCode)
+                                    && !string.IsNullOrEmpty(pulledValue)) {
+                                    int value;
+                                    try {
+                                        value = int.Parse(pulledValue);
+                                    } catch (FormatException) {
+                                        value = 0;
+                                    }
+
+                                    ISO4217[pulledCode] = value;
+                                }
+
+                                expectingCode = false;
+                                expectingValue = false;
+                                pulledCode = null;
+                                pulledValue = null;
+                            }
+                            break;
+                    }
                 }
-
-                ISO4217[key] = value;
             }
         }
     }

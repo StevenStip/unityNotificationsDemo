@@ -93,7 +93,6 @@ public class Example : MonoBehaviour {
                 .AddParam("reward", new Params()
                     .AddParam("rewardName", "Medal")
                     .AddParam("rewardProducts", new Product()
-                        .SetRealCurrency("USD", Product.ConvertCurrency("USD", 12.34m)) // $12.34
                         .AddVirtualCurrency("VIP Points", "GRIND", 20)
                         .AddItem("Sunday Showdown Medal", "Victory Badge", 1)
                     )
@@ -105,11 +104,13 @@ public class Example : MonoBehaviour {
 
         if (GUI.Button(new Rect(x, y += space, width, height), "Transaction Event")) {
 
-            Transaction transaction = new Transaction(
-                "Weapon type 11 manual repair", 
-                "PURCHASE", 
-                new Product().AddItem("WeaponsMaxConditionRepair:11", "WeaponMaxConditionRepair", 5),
-                new Product().AddVirtualCurrency("Credit", "GRIND", 710))
+                Transaction transaction = new Transaction(
+                    "Weapon type 11 manual repair",
+                    "PURCHASE",
+                    new Product()
+                        .AddItem("WeaponsMaxConditionRepair:11", "WeaponMaxConditionRepair", 5)
+                        .AddVirtualCurrency("Credit", "PREMIUM", 710),
+                    new Product().SetRealCurrency("USD", Product.ConvertCurrency("USD", 12.34m))) // $12.34
                 .SetTransactorId("2.212.91.84:15116")
                 .SetProductId("4019")
                 .AddParam("paymentCountry", "GB");

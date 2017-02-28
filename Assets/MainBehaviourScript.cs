@@ -4,9 +4,11 @@ using DeltaDNAAds;
 
 public class MainBehaviourScript : MonoBehaviour
 {
-	public const string COLLECT_URL = "http://collect8634ntynt.deltadna.net/collect/api";
+	//public const string COLLECT_URL = "http://collect8634ntynt.deltadna.net/collect/api";
+	public const string COLLECT_URL = "http://192.168.30.44:8080/collect/api";
 	public const string ENGAGE_URL = "http://engage8634ntynt.deltadna.net";
 	public const string ENVIRONMENT_KEY = "77068300723337397081646175814611";
+	string feedbackText = "No feedback";
 
 	Camera cam;
 
@@ -16,8 +18,9 @@ public class MainBehaviourScript : MonoBehaviour
         cam = GetComponent<Camera>();
 		//camera = new GetComponent<UnityEnging.Component.Camera> ();
 		cam.clearFlags = CameraClearFlags.SolidColor;
+		feedbackText = "Starting the application";
+		Debug.Log (feedbackText);
 
-		Debug.Log ("Starting the application");
 		DDNA.Instance.SetLoggingLevel (DeltaDNA.Logger.Level.DEBUG);
 		DDNA.Instance.ClientVersion = "0.2.0";
 		DDNA.Instance.StartSDK (ENVIRONMENT_KEY, COLLECT_URL, ENGAGE_URL);
@@ -25,12 +28,17 @@ public class MainBehaviourScript : MonoBehaviour
 
         // iOS push notifications
         DDNA.Instance.IosNotifications.OnDidRegisterForPushNotifications += (string n) => {
-			Debug.Log ("Got an iOS push token: " + n);
+			feedbackText = "Got an iOS push token: " + n;
+			Debug.Log (feedbackText);
 		};
 		DDNA.Instance.IosNotifications.OnDidReceivePushNotification += (string n) => {
 			Debug.Log ("Got an iOS push notification! " + n);
+			feedbackText = "Got an iOS push notification! " + n;
+			Debug.Log (feedbackText);
+
 		};
-//		DDNA.Instance.IosNotifications.RegisterForPushNotifications ();
+		DDNA.Instance.IosNotifications.RegisterForPushNotifications ();
+		Debug.Log ("Token is before callback: "+DDNA.Instance.PushNotificationToken);
 
 
 		// Android push notifications:
@@ -135,6 +143,7 @@ public class MainBehaviourScript : MonoBehaviour
             // Build a game event with a couple of event parameters
             GameEvent optionsEvent = new GameEvent ("options")
 				.AddParam ("option", "Music")
+				.AddParam("Number", (int)1123456789)
 				.AddParam ("action", "Disabled");
 
 			// Record the event
@@ -183,6 +192,9 @@ public class MainBehaviourScript : MonoBehaviour
 			DDNA.Instance.AndroidNotifications.RegisterForPushNotifications ();
 
 		}
+
+		GUI.Label(new Rect(yOffset, xOffset += (buttonHeight+10), buttonWidth, buttonHeight), feedbackText);
+
 
 
     }

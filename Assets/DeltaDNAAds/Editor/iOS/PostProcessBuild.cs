@@ -20,6 +20,8 @@ using UnityEditor.Callbacks;
 using UnityEditor.iOS.Xcode;
 using System.IO;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.Linq;
 
 /**
  *  Add support for CocoaPods to the Unity generated XCode project.  Run pods.command from the
@@ -27,7 +29,8 @@ using System.Diagnostics;
  */
 public class PostProcessBuild {
 
-    [PostProcessBuild(0)]
+    // Big number to avoid conflicting with Unity's internal ads PostProcess
+    [PostProcessBuild(100000)]
     public static void OnPostprocessBuild(BuildTarget buildTarget, string path) {
         UnityEngine.Debug.Log("OnPostprocessBuild "+buildTarget+" "+path);
 
@@ -58,6 +61,20 @@ public class PostProcessBuild {
 
             // Default src location is the project root
             FileUtil.ReplaceFile("Assets/DeltaDNAAds/Editor/iOS/Podfile", path + "/Podfile");
+
+            // Set Podfile platform version to match Unity
+            #if UNITY_5_5_OR_NEWER
+            var targetOSVersion = PlayerSettings.iOS.targetOSVersionString;
+            string iosPlatform = targetOSVersion.ToString();
+            UnityEngine.Debug.Log(iosPlatform);
+            #else
+            var targetOSVersion = PlayerSettings.iOS.targetOSVersion;
+            string iosPlatform = targetOSVersion.ToString().Substring(4).Replace('_', '.');
+            #endif
+            
+            var podfile = new List<string>(File.ReadAllLines(path + "/Podfile"));
+            podfile = new List<string>(podfile.Select(e => e.StartsWith("platform") ? string.Format("platform :ios, '{0}'", iosPlatform) : e).AsEnumerable());
+            File.WriteAllLines(path + "/Podfile", podfile.ToArray());
 
             // Update the XCode project on disk
             project.WriteToFile(projectPath);
